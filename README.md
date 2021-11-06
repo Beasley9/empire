@@ -1,4 +1,4 @@
-# Empire - Decentralized competition to secure the largest influence across the world.
+# Empire - Decentralized competition to get the most diverse digital kingdom.
 Generate NFTs such as outposts, forts, and strongholds, which hold data dependent on the person who minted it and their geographical location. These buildings produce resources based on their respective locations. Build you own unique empire across the world!
 
 Features:
