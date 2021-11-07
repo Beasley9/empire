@@ -1,0 +1,10 @@
+pragma solidity >0.8.0;
+
+import "./buildingGeneration.sol"
+
+contract resourceGeneration is buildingGeneration {
+
+        uint32 maxEfficiency;
+
+        function collectResources(
+}
