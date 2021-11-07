@@ -7,22 +7,26 @@ import "@openzepplin/contracts/access/Ownable.sol";
 contract buildingGeneration is ERC21, ERC721, Ownable {
 
         struct building {
+                address originalOwner;
+                uint level;
+                uint maxEfficiency;
                 uint location;
                 uint time;
-                address originalOwner;
                 uint16 biome;
                 uint16 secondaryDependency;
                 uint16 tertiaryDependency;
+                uint8 upgradeLevel;
         }
         
         struct resource {
-                uint16 biome;
-                uint16 rarity;
+                uint16 type;
+                uint8 rarity;
         }
-
-        building[] Buildings;
-
-        event outpostGeneration(uint location, uint time, address originalOwner, uint16 biome, uint16 secondaryDependency, uint16 tertiaryDependency);
+        
+        building[] internal Buildings;
+        resource[] internal Resources;
+        
+        event outpostGeneration(address originalOwner, uint level, uint maxEfficiency, uint location, uint time, uint16 biome, uint16 secondaryDependency, uint16 tertiaryDependency);
 
         mapping (address => uint) legacyOwnedBuildings
         mapping (address => uint) ownerNumBuildings
@@ -59,4 +63,4 @@ contract buildingGeneration is ERC21, ERC721, Ownable {
                 ownerNumBuildings[_user]++;
                 legacyNumBuildings[_user]++;
                 cooldownTime = block.timestamp + 
-                emit outpostGeneration(//Finsh)
+                emit outpostGeneration(//Finish)
