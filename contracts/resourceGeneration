@@ -2,9 +2,18 @@ pragma solidity >0.8.0;
 
 import "./buildingGeneration.sol"
 
-contract resourceGeneration is buildingGeneration {
+contract resourceGeneration is marketplace {
 
         uint32 maxEfficiency;
 
-        function collectResources(
+        function collectResources(address _user, uint _id) {
+                require(msg.sender == _user);
+                
+        
+        function collectAllResources(address _user) public {
+        require(msg.sender == _user);
+                for (uint i = 0; i < ownerNumBuildings[_user]; i++) {
+                        collectResources(_user, i);
+                }
+        }               
 }
