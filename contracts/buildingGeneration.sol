@@ -14,6 +14,11 @@ contract buildingGeneration is ERC21, ERC721, Ownable {
                 uint16 secondaryDependency;
                 uint16 tertiaryDependency;
         }
+        
+        struct resource {
+                uint16 biome;
+                uint16 rarity;
+        }
 
         building[] Buildings;
 
@@ -22,7 +27,8 @@ contract buildingGeneration is ERC21, ERC721, Ownable {
         mapping (address => uint) legacyOwnedBuildings
         mapping (address => uint) ownerNumBuildings
         mapping (address => uint) ownerNumResources
-        mapping (uint => address) buildingToOwner
+        mapping (building => address) buildingToOwner
+        mapping (resource => address) resourceToOwner
 
         uint private cooldownTime;
 
