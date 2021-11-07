@@ -6,10 +6,22 @@ contract resourceGeneration is marketplace {
 
         uint32 maxEfficiency;
 
-        function collectResources(address _user, uint _id) {
+        // I got tired. This needs to account for fractions (cannot be fractions) also, push back type of resource into array found in buildingGeneration.sol)
+        function collectResources(address _user, uint _id) public {
                 require(msg.sender == _user);
-                
-        
+                if (buildingToOwner[_id].upgradeLevel == 1) {
+                        uint numResources = (buildingToOwner[_id].maxEfficiency/(1 + (1.1 ** (-2 * buildingToOwner[_id].level))));
+                }
+                else if (buildingToOwner[_id].upgradeLevel == 2) {
+                        uint numResources = (buildingToOwner[_id].maxEfficiency/(1 + (1.5 ** (-.5 * buildingToOwner[_id].level))));
+                }
+                else {
+                        uint numResources = (buildingToOwner[_id].maxEfficiency/(1 + (1.5 ** (-1 * buildingToOwner[_id].level))));
+                }
+                ownerNumResources[_user] += numResources;
+
+
+
         function collectAllResources(address _user) public {
         require(msg.sender == _user);
                 for (uint i = 0; i < ownerNumBuildings[_user]; i++) {
