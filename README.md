@@ -9,6 +9,7 @@ Features:
 5. Create elusive strongholds which generate you empire tokens!
 
 <---------------------------------------------------------------------------------------------------------------------------------------------------------------->
+
 In the game, “Empire,” players will be able to create outposts, forts, and strongholds, each of which are generated in a different manner. Every building type can be placed anywhere on the planet.
 
 Outposts generate items based off of the NFT’s staked location (assigned at creation). For example, outposts near water can get fish/seaweed/coral etc, and outposts near mountains can get geodes/metal/stones etc. The “efficiency” of outposts is the lowest.
