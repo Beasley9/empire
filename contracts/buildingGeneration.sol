@@ -7,7 +7,7 @@ import "./spawnEvent.sol";
 contract buildingGeneration is ERC21, ERC721, spawnEvent {
 
         // Declare global structs in this block
-        struct building {
+        struct private building {
                 address originalOwner;
                 uint level;
                 uint maxEfficiency;
@@ -18,7 +18,7 @@ contract buildingGeneration is ERC21, ERC721, spawnEvent {
                 uint16 tertiaryDependency;
         };
 
-        struct resource {
+        struct private resource {
                 uint16 biome;
                 uint8 rarity;
         };
@@ -31,10 +31,10 @@ contract buildingGeneration is ERC21, ERC721, spawnEvent {
         event outpostGeneration(address originalOwner, uint level, uint maxEfficiency, uint location, uint time, uint16 biome, uint16 secondaryDependency, uint16 tertiaryDependency);
 
         // Order all mappings
-        mapping (address => uint) legacyOwnedBuildings;
-        mapping (address => uint) ownerNumBuildings;
-        mapping (address => uint) ownerNumResources;
-        mapping (uint => address) buildingToOwner;
+        mapping (address => uint) private legacyOwnedBuildings;
+        mapping (address => uint) private ownerNumBuildings;
+        mapping (address => uint) private ownerNumResources;
+        mapping (uint => address) private buildingToOwner;
 
 
         // Order all global variables
@@ -86,4 +86,3 @@ contract buildingGeneration is ERC21, ERC721, spawnEvent {
         }
 
 }
-
