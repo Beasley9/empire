@@ -1,8 +1,9 @@
 pragma solidity >0.8.0;
 
-import "@openzepplin/contracts/access/Ownable.sol";
+import "@openzeppelin-contracts/contracts/access/Ownable.sol";
+import "@openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 
-contract spawnEvent is Ownable {
+contract spawnEvent is Ownable, SafeMath {
 
         // Declare all variables here
 
@@ -41,4 +42,6 @@ contract spawnEvent is Ownable {
         function spawnEvent() internal {
                 // TODO: Make function which spawns a new outpost. This function will be called for buildingGeneration.sol
         }
+
+        function tokenBurn() internal {
 }
