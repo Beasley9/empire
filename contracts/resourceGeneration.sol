@@ -16,14 +16,15 @@ contract resourceGeneration is marketplace {
         function calculateEffectiveEfficiency(address _user, uint _buildingId) internal returns (uint) {
                 uint effectiveEfficiency = 0;
                 if (buildingToOwner[_buildingId].upgradeLevel == 1) {
-                        effectiveEfficiency = (buildingToOwner[_buildingId].maxEfficiency/(1 + (1.1 ** (-2 * buildingToOwner[_buildingId].level))));
+                        effectiveEfficiency = uint((buildingToOwner[_buildingId].maxEfficiency/(1 + (1.1 ** (-2 * buildingToOwner[_buildingId].level)))));
                 }
                 else if (buildingToOwner[_id].upgradeLevel == 2) {
-                        effectiveEfficiency = (buildingToOwner[_buildingId].maxEfficiency/(1 + (1.5 ** (-.5 * buildingToOwner[_buildingId].level))));
+                        effectiveEfficiency = uint((buildingToOwner[_buildingId].maxEfficiency/(1 + (1.5 ** (-.5 * buildingToOwner[_buildingId].level)))));
                 }
                 else {
-                        effectiveEfficiency = (buildingToOwner[_buildingId].maxEfficiency/(1 + (1.5 ** (-1 * buildingToOwner[_buildingId].level))));
+                        effectiveEfficiency = uint((buildingToOwner[_buildingId].maxEfficiency/(1 + (1.5 ** (-1 * buildingToOwner[_buildingId].level)))));
                 }
+
                 return effectiveEfficiency;
         }
 
