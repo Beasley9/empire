@@ -1,6 +1,6 @@
 pragma solidity >0.8.0;
 
-import "./buildingGeneration"
+import "./buildingGeneration";
 
 contract buildingUpgrade is resourceGeneration {
 
@@ -11,7 +11,6 @@ contract buildingUpgrade is resourceGeneration {
         uint private uncommonMultiplier;
         uint private rareMultiplier;
         uint private specialMultiplier;
-
         // Put the modifiers here
 
         // Put the functions here 
@@ -115,7 +114,7 @@ contract buildingUpgrade is resourceGeneration {
         }
 
         // Do we need "building storage thisBuilding = Buildings[_buildingId];"???
-        function upgradeOutpost(address _user, building _outpost) public {
+        function upgradeOutpost(address _user, building storage _outpost) public {
                 require(buildingToOwner[_outpost] == msg.sender);
                 require(_outpost.level == 1);
                 require(canUpgrade(_user, _outpost), "You do not have enough resources to upgrade your outpost!");
@@ -123,18 +122,18 @@ contract buildingUpgrade is resourceGeneration {
                 _outpost.level++;
         }
 
-        function upgradeFort(address _user, uint _fortId) public {
-                require(buildingToOwner[_building] == msg.sender);
-                require(_outpost.level == 2);
-                require(canUpgrade(_user, _building), "You do not have enough resources to upgrade your outpost!");
-                _outpost.level++;
+        function upgradeFort(address _user, building storage _fort) public {
+                require(buildingToOwner[_fort] == msg.sender);
+                require(_fort.level == 2);
+                require(canUpgrade(_user, _fort), "You do not have enough resources to upgrade your fort!");
+                _fort.level++;
                 // Burn Resources and upgrade to stronghold class. Doing so also increases maxEfficiency
         }
 
-        function upgradeStronghold(address _user, uint _strongholdId) public {
-                require(buildingToOwner[_building] == msg.sender);
-                require(_outpost.level == 3);
-                require(canUpgrade(_user, _building), "You do not have enough resources to upgrade your outpost!");
+        function upgradeStronghold(address _user, building storage _stronghold) public {
+                require(buildingToOwner[_stronghold] == msg.sender);
+                require(_stronghold.level == 3);
+                require(canUpgrade(_user, _stronghold), "You do not have enough resources to upgrade your stronghold!");
                 // Burn Resources and increase maxEfficiency
         }
 
