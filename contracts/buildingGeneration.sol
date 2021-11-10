@@ -123,16 +123,16 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
                 strongholdSpawnRarity = _newStrongholdSpawnRarity;
         }
 
-        function getSpawnFrequency() external view returns (uint) {
+        function getSpawnFrequency() public view returns (uint) {
                 return spawnFrequency;
         }
 
-        function getFortSpawnRarity() external view returns (uint) {
+        function getFortSpawnRarity() public view returns (uint) {
                 return fortSpawnRarity;
         }
 
-        function getStrongholdSpawnRarity() external view returns (uint) {
-                return strongholdSpawnRarity();
+        function getStrongholdSpawnRarity() public view returns (uint) {
+                return strongholdSpawnRarity;
         }
 
         function _spawnEvent() internal {
