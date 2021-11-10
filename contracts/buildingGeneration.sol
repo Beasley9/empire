@@ -7,7 +7,7 @@ import "./spawnEvent.sol";
 contract buildingGeneration is ERC20, ERC721, spawnEvent {
 
         // Declare global structs in this block
-        struct private building {
+        struct internal building {
                 address originalOwner;
                 uint level;
                 uint maxEfficiency;
@@ -18,23 +18,23 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
                 uint16 tertiaryDependency;
         };
 
-        struct private resource {
+        struct internal resource {
                 uint16 biome;
                 uint8 rarity;
         };
 
         // Initialize arrays
-        building[] private Buildings;
-        resource[] private Resources;
+        building[] internal Buildings;
+        resource[] internal Resources;
 
         // Order all events 
         event outpostGeneration(address originalOwner, uint level, uint maxEfficiency, uint location, uint time, uint16 biome, uint16 secondaryDependency, uint16 tertiaryDependency);
 
         // Order all mappings
-        mapping (address => uint) private legacyOwnedBuildings;
-        mapping (address => uint) private ownerNumBuildings;
-        mapping (building => address) private buildingToOwner;
-        mapping (resource => address) private resourceToOwner;
+        mapping (address => uint) internal legacyOwnedBuildings;
+        mapping (address => uint) internal ownerNumBuildings;
+        mapping (building => address) internal buildingToOwner;
+        mapping (resource => address) internal resourceToOwner;
 
 
         // Order all global variables
@@ -92,6 +92,9 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
                 legacyNumBuildings[_user]++;
                 cooldownTime = block.timestamp + 
                 emit outpostGeneration(//Finsh)
+                if (buildingId % spawnFrequency == 0) {
+                        _spawnEvent();
+                }
         }
         function generateGenesisOutpost(address _user) public outpostGenerationCooldownTime(_user) isGenesis isOwner {
                 // Function will be the same as previous, except with more powerful maxEfficiency
