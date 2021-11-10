@@ -4,7 +4,7 @@ import "@openzepplin/contracts/tokens/ERC20/ERC20.sol";
 import "@openzepplin/contracts/tokens/ERC721/ERC721.sol";
 import "./spawnEvent.sol";
 
-contract buildingGeneration is ERC21, ERC721, spawnEvent {
+contract buildingGeneration is ERC20, ERC721, spawnEvent {
 
         // Declare global structs in this block
         struct private building {
@@ -33,12 +33,13 @@ contract buildingGeneration is ERC21, ERC721, spawnEvent {
         // Order all mappings
         mapping (address => uint) private legacyOwnedBuildings;
         mapping (address => uint) private ownerNumBuildings;
-        mapping (address => uint) private ownerNumResources;
-        mapping (uint => address) private buildingToOwner;
+        mapping (building => address) private buildingToOwner;
+        mapping (resource => address) private resourceToOwner;
 
 
         // Order all global variables
         uint private cooldownTime;
+        uint private genesisPeriod
 
         // Order all modifier functions
         modifier outpostGenerationCooldownTime(address _user) {
@@ -51,10 +52,19 @@ contract buildingGeneration is ERC21, ERC721, spawnEvent {
                 _;
         }
 
+        modifier isGenesis() {
+                require(block.timestamp <= genesisPeriod);
+                _;
+        }
+
         // Order all constructors
+        constructor() {
+                genesisPeriod = block.timestamp + 30 days;
+        }
 
-
-
+        constructor(address _owner) {
+                _mint(_owner, 10000);
+        }
 
         // Order all functions
 
@@ -75,8 +85,7 @@ contract buildingGeneration is ERC21, ERC721, spawnEvent {
         }
 
         // TODO: Implement the OracleInterface and use it to finish this function
-        function generateOutpost(address _user) public outpostGenerationCooldownTime(_user) {
-                require(msg.sender == _user);
+        function generateOutpost(address _user) public outpostGenerationCooldownTime(_user) isOwner {
                 //buildingId = Buildings.push(...) - 1
                 buildingToOwner[buildingId] = _user
                 ownerNumBuildings[_user]++;
@@ -84,5 +93,6 @@ contract buildingGeneration is ERC21, ERC721, spawnEvent {
                 cooldownTime = block.timestamp + 
                 emit outpostGeneration(//Finsh)
         }
-
+        function generateGenesisOutpost(address _user) public outpostGenerationCooldownTime(_user) isGenesis isOwner {
+                // Function will be the same as previous, except with more powerful maxEfficiency
 }
