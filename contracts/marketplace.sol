@@ -5,19 +5,26 @@ import "./buildingGeneration.sol"
 contract marketplace is buildingGeneration {
 
         // Declare all events here
-        event itemListed(uint item, uint quantity, uint price, address owner);
-        event lotteryBegin(uint entryFee);
+        event resourceListed(uint item, uint quantity, uint price, address owner);
         event buildingListed(uint price, address owner);
+        event resourceLotteryBegin(uint entryFee);
+        event buildingLotteryBegin(uint entryFee);
+        event resourceSold(uint price, address to, address from);
+        event buildingSold(uint price, address to, address from);
+        event resourceLotteryWon(address winner);
+        event buildingLotteryWon(address winner);
 
         // Declare all variables here
         uint private winningIndex;
 
         // Declare all modifiers
-        modifier enoughResources(address _address, uint16 _biome, uint8 _rarity, address _amount) {
+        modifier enoughResources(address _address, uint16 _biome, uint8 _rarity, uint _quantity) {
                 uint counter;
-                for(uint i = 0; i < resources.length; i++) {
-                        if(resources[i].biome == _biome && resources[i].rarity == _rarity) {
-                                counter++;
+                for(uint i = 0; i < Resources.length; i++) {
+                        if (resourceToOwner[Resources[i]] == msg.sender) {
+                                if (Resources[i].biome == _biome && Resources[i].rarity == _rarity) {
+                                        counter++;
+                                }
                         }
                 }
                 require(counter >= _amount);
