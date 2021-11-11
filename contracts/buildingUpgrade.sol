@@ -31,37 +31,38 @@ contract buildingUpgrade is resourceGeneration {
                 specialMultiplier = _specialMultiplier;
         }
 
-        function getPrimaryUpgradePoints(building _building) internal view returns (uint) {
-                return ((_building.maxEfficiency * (_building.level ** 2)) / 4);
+        function _getPrimaryUpgradePoints(uint _buildingId) internal view returns (uint) {
+                return ((Buildings[_buildingId].maxEfficiency * (Buildings[_buildingId].level ** 2)) / 4);
         }
 
-        function getSecondaryUpgradePoints(building _building) internal view returns (uint) {
-                if (_building.level <= 3) {
+        function _getSecondaryUpgradePoints(uint _buildingId) internal view returns (uint) {
+                if (Buildings[_buildingId].level <= 3) {
                         return 0;
                 }
                 else {
-                        return ((_building.maxEfficiency * ((_building.level - 3) ** 2)) / 4);
+                        return ((Buildings[_buildingId].maxEfficiency * ((Buildings[_buildingId].level - 3) ** 2)) / 4);
                 }
         }
-        function getTertiaryUpgradePoints(building _building) internal view returns (uint) {
-                if (_building.level <= 5) {
+        function _getTertiaryUpgradePoints(uint _buildingId) internal view returns (uint) {
+                if (Buildings[_buildingId].level <= 5) {
                         return 0;
                 }
                 else {
-                        return ((_building.maxEfficiency * ((_building.level - 5) ** 2)) / 4);
+                        return ((Buildings[_buildingId].maxEfficiency * ((Buildings[_buildingId].level - 5) ** 2)) / 4);
                 }
         }
 
-        function canUpgrade(address _user, building _building) internal view returns (bool) {
-                uint primaryPoints = getPrimaryUpgradePoints(_building);
-                uint secondaryPoints = getSecondaryUpgradePoints(_building);
-                uint tertiaryPoints = getTertiaryUpgradePoints(_building);
+
+        function canUpgrade(address _user, uint _buildingId) public view returns (bool, uint, uint, uint, uint, uint, uint, uint, uint, uint) {
+                uint primaryPoints = _getPrimaryUpgradePoints(_buildingId);
+                uint secondaryPoints = _getSecondaryUpgradePoints(_buildingId);
+                uint tertiaryPoints = _getTertiaryUpgradePoints(_buildingId);
                 uint userPrimaryResourcePoints = 0;
                 uint userSecondaryResourcePoints = 0;
                 uint userTertiaryResourcePoints = 0;
                 for (int i = 0; i < Resources.length; i++) {
                         if (resourceToOwner[Resources[i]] == msg.sender) {
-                                if (Resources[i].biome == _building.biome) {
+                                if (Resources[i].biome == Buildings[_buildingId].biome) {
                                         if (Resources[i].rarity == 1) {
                                                 userPrimaryResourcePoints = userPrimaryResourcePoints.add(commonMultiplier);
                                         }
@@ -75,7 +76,7 @@ contract buildingUpgrade is resourceGeneration {
                                                 userPrimaryResourcePoints = userPrimaryResourcePoints.add(specialMultiplier);
                                         }
                                 }
-                                else if (Resources[i].biome == _building.secondaryDependency) {
+                                else if (Resources[i].biome == Buildings[_buildingId].secondaryDependency) {
                                         if (Resources[i].rarity == 1) {
                                                 userSecondaryResourcePoints = userSecondaryResourcePoints.add(commonMultiplier);
                                         }
@@ -89,7 +90,7 @@ contract buildingUpgrade is resourceGeneration {
                                                 userSecondaryResourcePoints = userSecondaryResourcePoints.add(specialMultiplier);
                                         }
                                 }
-                                else if (Resources[i].biome == _building.tertiaryDependency) {
+                                else if (Resources[i].biome == Buildings[_buildingId].tertiaryDependency) {
                                         if (Resources[i].rarity == 1) {
                                                 userTertiaryResourcePoints = userTertiaryResourcePoints.add(commonMultiplier);
                                         }
@@ -114,18 +115,21 @@ contract buildingUpgrade is resourceGeneration {
         }
 
         // Do we need "building storage thisBuilding = Buildings[_buildingId];"???
-        function upgradeOutpost(address _user, building storage _outpost) public {
-                require(buildingToOwner[_outpost] == msg.sender);
-                require(_outpost.level == 1);
-                require(canUpgrade(_user, _outpost), "You do not have enough resources to upgrade your outpost!");
-                // Burn Resources and upgrade outpost level. Doing so also increases maxEfficiency
-                _outpost.level++;
+        function upgradeOutpost(address _user, uint _buildingId) public {
+                require(buildingToOwner[Buildings[_buildingId]] == msg.sender);
+                require(Buildings[_buildingId].level == 1);
+                require(canUpgrade(_user, Buildings[_buildingId]), "You do not have enough resources to upgrade your outpost!");
+                uint primaryPoints = _getPrimaryUpgradePoints(Buildings[_buildingId]);
+                uint secondaryPoints = _getSecondaryUpgradePoints(Buildings[_buildingId]);
+                uint tertiaryPoints = _getTertiaryUpgradePoints(Buildings[_buildingId]);
+
+                Buildings[_buildingId].level++;
         }
 
-        function upgradeFort(address _user, building storage _fort) public {
-                require(buildingToOwner[_fort] == msg.sender);
-                require(_fort.level == 2);
-                require(canUpgrade(_user, _fort), "You do not have enough resources to upgrade your fort!");
+        function upgradeFort(address _user, uint _buildingId) public {
+                require(buildingToOwner[_buildingId] == msg.sender);
+                require(Buildings[_buildingId].level == 2);
+                require(canUpgrade(_user, _buildingId), "You do not have enough resources to upgrade your fort!");
                 _fort.level++;
                 // Burn Resources and upgrade to stronghold class. Doing so also increases maxEfficiency
         }
