@@ -13,23 +13,23 @@ contract resourceGeneration is marketplace {
         // Declare all functions here
 
         // TODO: ensure that this function will produce an integer. UINTS CANNOT BE DECIMALS
-        function calculateEffectiveEfficiency(address _user, building storage _building) internal returns (uint) {
+        function calculateEffectiveEfficiency(address _user, uint _buildingId) internal returns (uint) {
                 uint effectiveEfficiency = 0;
-                if (_building.upgradeLevel == 1) {
-                        effectiveEfficiency = uint((_building.maxEfficiency/(1 + (1.1 ** (-2 * _building.level)))));
+                if (Buildings[_buildingId].upgradeLevel == 1) {
+                        effectiveEfficiency = uint((Buildings[_buildingId].maxEfficiency/(1 + (1.1 ** (-2 * Buildings[_buildingId].level)))));
                 }
-                else if (_building.upgradeLevel == 2) {
-                        effectiveEfficiency = uint((_building.maxEfficiency/(1 + (1.5 ** (-.5 * _building.level)))));
+                else if (Buildings[_buildingId].upgradeLevel == 2) {
+                        effectiveEfficiency = uint((Buildings[_buildingId].maxEfficiency/(1 + (1.5 ** (-.5 * Buildings[_buildingId].level)))));
                 }
                 else {
-                        effectiveEfficiency = uint((_building.maxEfficiency/(1 + (1.5 ** (-1 * _building.level)))));
+                        effectiveEfficiency = uint((Buildings[_buildingId].maxEfficiency/(1 + (1.5 ** (-1 * Buildings[_buildingId].level)))));
                 }
                 return effectiveEfficiency;
         }
 
-        function collectResources(building storage _building) public {
-                require(buildingToOwner[_building] == msg.sender);
-                uint efficiency = calculateEffectiveEfficiency(_user, _building);
+        function collectResources(uint _buildingId) public {
+                require(buildingToOwner[_buildingId] == msg.sender);
+                uint efficiency = calculateEffectiveEfficiency(_user, _buildingId);
                 //TODO: Finish this function to add to the user's resource pool
         }
 
