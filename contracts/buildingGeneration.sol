@@ -35,8 +35,8 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
         // Order all mappings
         mapping (address => uint) internal legacyOwnedBuildings;
         mapping (address => uint) internal ownerNumBuildings;
-        mapping (building => address) internal buildingToOwner;
-        mapping (resource => address) internal resourceToOwner;
+        mapping (uint => address) internal buildingToOwner;
+        mapping (uint => address) internal resourceToOwner;
 
 
         // Order all global variables
@@ -91,7 +91,8 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
 
         // TODO: Implement the OracleInterface and use it to finish this function
         function generateOutpost(address _user) public outpostGenerationCooldownTime(_user) isOwner {
-                //buildingId = Buildings.push(...) - 1
+                // Will require oracle before the buildingId
+                buildingId = Buildings.push(building(_user, 1, //Finish) - 1
                 buildingToOwner[buildingId] = _user
                 ownerNumBuildings[_user]++;
                 legacyNumBuildings[_user]++;
@@ -123,16 +124,16 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
                 strongholdSpawnRarity = _newStrongholdSpawnRarity;
         }
 
-        function getSpawnFrequency() public view returns (uint) {
+        function getSpawnFrequency() external view returns (uint) {
                 return spawnFrequency;
         }
 
-        function getFortSpawnRarity() public view returns (uint) {
+        function getFortSpawnRarity() external view returns (uint) {
                 return fortSpawnRarity;
         }
 
-        function getStrongholdSpawnRarity() public view returns (uint) {
-                return strongholdSpawnRarity;
+        function getStrongholdSpawnRarity() external view returns (uint) {
+                return strongholdSpawnRarity();
         }
 
         function _spawnEvent() internal {
