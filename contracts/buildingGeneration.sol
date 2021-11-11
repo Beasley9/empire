@@ -1,4 +1,4 @@
-pragma solidity >0.8.0; hi
+pragma solidity >0.8.0;
 
 import "@openzepplin/contracts/tokens/ERC20/ERC20.sol";
 import "@openzepplin/contracts/tokens/ERC721/ERC721.sol";
