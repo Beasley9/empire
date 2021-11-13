@@ -35,13 +35,11 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
         // Order all mappings
         mapping (address => uint) internal legacyOwnedBuildings;
         mapping (address => uint) internal ownerNumBuildings;
+        mapping (address => uint) internal playerCooldownTime;
         mapping (uint => address) internal buildingToOwner;
         mapping (uint => address) internal resourceToOwner;
 
-
         // Order all global variables
-        uint private cooldownTime;
-        uint private genesisPeriod
         uint internal spawnFrequency;
         uint internal fortSpawnRarity;
         uint internal strongholdSpawnRarity;
@@ -71,33 +69,89 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
                 _mint(_owner, 10000);
         }
 
+        constructor() {
+                uint internal globalNonce = 0;
+                uint internal maxEfficiencyCap = 20;
+                uint internal genesisEfficiency = 30;
+                uint internal generationDepreciation = 2;
+                uint internal genesisTime = block.timestamp;
+                uint internal generationOne = block.timestamp + 90 days;
+                uint internal generationTwo = block.timestamp + 365 days;
+                uint internal generationThree = block.timestamp + 3 years;
+                uint internal generationFour = block.timestamp + 5 years;
+                uint internal generationFive = block.timestamp + 10 years;
+                uint internal generationSix = block.timestamp + 20 years;
+                uint internal genesisPeriod = block.timestamp + 30 days;
+        }
         // Order all functions
 
-        function getCooldownTime(address _user) public view returns (uint) {
-                return cooldownTime;
+        // TODO: Include Empire Score Integration
+        function getCurrentEfficiencyValue() internal returns (uint) {
+                if (block.timestamp <= generationOne) {
+                        return maxEfficiencyCap;
+                }
+                else if (block.timestamp <= generationTwo) {
+                        return maxEfficiencyCap - (1 * generationDepreciation);
+                }
+                else if (block.timestamp <= generationThree) {
+                        return maxEfficiencyCap - (2 * generationDepreciation);
+                }
+                else if (block.timestamp <= generationFour) {
+                        return maxEfficiencyCap - (3 * generationDepreciation);
+                }
+                else if (block.timestamp <= generationFive) {
+                        return maxEfficiencyCap - (4 * generationDepreciation);
+                }
+                else if (block.timestamp <= generationSix) {
+                        return maxEfficiencyCap - (5 * generationDepreciation);
+                }
         }
 
-        function _setCooldownTime(address _user) internal {
+        function _getBiome() internal returns (uint16) {
+                return _effectiveRandomNumber(16);
+        }
+
+        function setMaxEfficiencyCap(uint _newMax) public onlyOwner {
+                maxEfficiencyCap = _newMax;
+        }
+
+        function setGenerationDepreciation(uint _newDepreciation) public onlyOwner {
+                generationDepreciation = _newDepreciation;
+        }
+
+        function _effectiveRandomNumber(uint _max) internal returns (uint) {
+                globalNonce++;
+                return uint(keccak256(abi.encodePacked(block.timestamp, globalNonce, msg.sender))) % _max;
+
+        // TODO: Recheck this function
+        function _getPlayerCooldownTime(address _user) internal view returns (uint) {
                 if (legacyOwnedBuildings[_user] == 0) {
-                        cooldownTime = 0 days;
+                        return playerCooldownTime[_user] +  0 days;
                 }
                 else if (legacyOwnedBuildings[_user] <= 2) {
-                        cooldownTime = legacyOwnedBuildings[_user] - 1 days;
+                        return playerCooldownTime[_user] + legacyOwnedBuildings[_user] - 1 days;
                 }
                 else {
-                        cooldownTime = (7 * (1 - (12/(legacyOwnedBuildings[_user] * 7)))) days;
+                        return playerCooldownTime[_user] + (7 * (1 - (12/(legacyOwnedBuildings[_user] * 7)))) days;
                 }
         }
 
-        // TODO: Implement the OracleInterface and use it to finish this function
+        //TODO: Recheck this function
         function generateOutpost(address _user) public outpostGenerationCooldownTime(_user) isOwner {
-                // Will require oracle before the buildingId
-                buildingId = Buildings.push(building(_user, 1, //Finish) - 1
-                buildingToOwner[buildingId] = _user
+                uint cappedEfficiency = getEfficiencyValue();
+                uint randomBiome = _getBiome();
+                uint secondaryReq = randomBiome;
+                uint tertiaryReq = randomBiome;
+                while (randomBiome != secondaryReq && randomBiome != tertiaryReq) {
+                        secondaryReq = _getBiome();
+                        tertiaryReq = _getBiome();
+                }
+                buildingId = Buildings.push(building(_user, 1, cappedEfficiency, /* location, */ block.timestamp, randomBiome, secondaryReq, tertiaryReq)) - 1;
+                buildingToOwner[buildingId] = _user;
                 ownerNumBuildings[_user]++;
                 legacyNumBuildings[_user]++;
-                cooldownTime = block.timestamp + 
-                emit outpostGeneration(//Finsh)
+                playerCooldownTime[_user] = block.timestamp + _setPlayerCooldownTime(_user);
+                emit outpostGeneration(_user, 1, cappedEfficiency, /* location*/ block.timestamp, randomBiome, secondaryReq, tertiaryReq);
                 if (buildingId % spawnFrequency == 0) {
                         _spawnEvent();
                 }
@@ -108,10 +162,6 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
 
 
         // Spawn Events
-        function _getRandomSpawnIndex(uint _max) private view returns (uint) {
-                // TODO: use an oracle to find a random number between 1 and _max;
-        }
-
         function setSpawnFrequency(uint _newSpawnFrequency) public onlyOwner {
                 spawnFrequency = _newSpawnFrequency;
         }
