@@ -124,7 +124,7 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
                 return uint(keccak256(abi.encodePacked(block.timestamp, globalNonce, msg.sender))) % _max;
 
         // TODO: Recheck this function
-        function _getPlayerCooldownTime(address _user) internal view returns (uint) {
+        function _setPlayerCooldownTime(address _user) internal view returns (uint) {
                 if (legacyOwnedBuildings[_user] == 0) {
                         return playerCooldownTime[_user] +  0 days;
                 }
@@ -138,6 +138,7 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
 
         //TODO: Recheck this function
         function generateOutpost(address _user) public outpostGenerationCooldownTime(_user) isOwner {
+                require(playerCooldownTime[_user] <= block.timestamp || legacyNumBuildings[_user] == 0);
                 uint cappedEfficiency = getEfficiencyValue();
                 uint randomBiome = _getBiome();
                 uint secondaryReq = randomBiome;
@@ -157,9 +158,25 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
                 }
         }
         function generateGenesisOutpost(address _user) public outpostGenerationCooldownTime(_user) isGenesis isOwner {
-                // Function will be the same as previous, except with more powerful maxEfficiency
+                require(playerCooldownTime[_user] <= block.timestamp || legacyNumBuildings[_user] == 0);
+                uint cappedEfficiency = genesisEfficiency;
+                uint randomBiome = _getBiome();
+                uint secondaryReq = randomBiome;
+                uint tertiaryReq = randomBiome;
+                while (randomBiome != secondaryReq && randomBiome != tertiaryReq) {
+                        secondaryReq = _getBiome();
+                        tertiaryReq = _getBiome();
+                }
+                buildingId = Buildings.push(building(_user, 1, cappedEfficiency, /* location, */ block.timestamp, randomBiome, secondaryReq, tertiaryReq)) - 1;
+                buildingToOwner[buildingId] = _user;
+                ownerNumBuildings[_user]++;
+                legacyNumBuildings[_user]++;
+                playerCooldownTime[_user] = block.timestamp + _setPlayerCooldownTime(_user);
+                emit outpostGeneration(_user, 1, cappedEfficiency, /* location*/ block.timestamp, randomBiome, secondaryReq, tertiaryReq);
+                if (buildingId % spawnFrequency == 0) {
+                        _spawnEvent();
+                }
         }
-
 
         // Spawn Events
         function setSpawnFrequency(uint _newSpawnFrequency) public onlyOwner {
@@ -174,20 +191,21 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
                 strongholdSpawnRarity = _newStrongholdSpawnRarity;
         }
 
-        function getSpawnFrequency() external view returns (uint) {
+        function getSpawnFrequency() public view returns (uint) {
                 return spawnFrequency;
         }
 
-        function getFortSpawnRarity() external view returns (uint) {
+        function getFortSpawnRarity() public view returns (uint) {
                 return fortSpawnRarity;
         }
 
-        function getStrongholdSpawnRarity() external view returns (uint) {
+        function getStrongholdSpawnRarity() public view returns (uint) {
                 return strongholdSpawnRarity();
         }
 
         function _spawnEvent() internal {
-                uint spawnIndex = getRandomSpawnIndex(Buildings.length);
+                uint spawnIndex = _effectiveRandomNumber(Buildings.length);
+
         }
 
         function _tokenBurn() internal {
