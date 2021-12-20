@@ -1,184 +1,185 @@
+/*
+ SPDX-License-Identifier: MIT
+*/
+
 pragma solidity >0.8.0;
 
-import "@openzepplin/contracts/tokens/ERC20/ERC20.sol";
-import "@openzepplin/contracts/tokens/ERC721/ERC721.sol";
-import "@openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract buildingGeneration is ERC20, ERC721, spawnEvent {
+contract buildingGeneration is ERC721, Ownable {
+	
+	using SafeMath for uint256;
 
-        using SafeMath for uint256;
+	// Declare global structs in this block
+	struct building {
+		address originalOwner;
+		uint level;
+		uint maxEfficiency;
+		uint time;
+		uint16 biome;
+		uint16 secondaryDependency;
+		uint16 tertiaryDependency;
+	}
 
-        // Declare global structs in this block
-        struct internal building {
-                address originalOwner;
-                uint level;
-                uint maxEfficiency;
-                uint location;
-                uint time;
-                uint16 biome;
-                uint16 secondaryDependency;
-                uint16 tertiaryDependency;
-        };
+	struct resource {
+		uint16 biome;
+		uint8 rarity;
+	}
 
-        struct internal resource {
-                uint16 biome;
-                uint8 rarity;
-        };
+	uint globalNonce = 0;
+        uint maxEfficiencyCap = 20;
+        uint genesisEfficiency = 30;
+        uint generationDepreciation = 2;
+        uint genesisTime = block.timestamp;
+        uint generationOne = block.timestamp + 90 days;
+        uint generationTwo = block.timestamp + 365 days;
+        uint generationThree = block.timestamp + 900 days;
+        uint generationFour = block.timestamp + 1500 days;
+        uint generationFive = block.timestamp + 3000 days;
+        uint generationSix = block.timestamp + 6000 days;
+        uint genesisPeriod = block.timestamp + 30 days;	
 
-        // Initialize arrays
-        building[] internal Buildings;
-        resource[] internal Resources;
+	// Initialize arrays
+	building[] internal Buildings;
+	resource[] internal Resources;
 
-        // Order all events 
-        event outpostGeneration(address originalOwner, uint level, uint maxEfficiency, uint location, uint time, uint16 biome, uint16 secondaryDependency, uint16 tertiaryDependency);
+	// Order all events 
+	event outpostGeneration(address originalOwner, uint level, uint maxEfficiency, uint time, uint16 biome, uint16 secondaryDependency, uint16 tertiaryDependency);
+	
+	// Order all mappings
+	mapping (address => uint) internal legacyOwnedBuildings;
+	mapping (address => uint) internal ownerNumBuildings;
+	mapping (address => uint) internal playerCooldownTime;
+	mapping (uint => address) internal buildingToOwner;
+	mapping (uint => address) internal resourceToOwner;	
 
-        // Order all mappings
-        mapping (address => uint) internal legacyOwnedBuildings;
-        mapping (address => uint) internal ownerNumBuildings;
-        mapping (address => uint) internal playerCooldownTime;
-        mapping (uint => address) internal buildingToOwner;
-        mapping (uint => address) internal resourceToOwner;
-
-        // Order all global variables
-        uint internal spawnFrequency;
+	// Order all global variables
+	uint internal spawnFrequency;
         uint internal fortSpawnRarity;
         uint internal strongholdSpawnRarity;
-
-        // Order all modifier functions
-        modifier outpostGenerationCooldownTime(address _user) {
-                require(getCooldownTime(_user) + block.timestamp <= block.timestamp);
+		
+	// Order all modifier functions
+	modifier outpostGenerationCooldownTime(address _user) {
+                require(playerCooldownTime[_user] <= block.timestamp);
                 _;
         }
+	
+	modifier isOwner(address _address) {
+		require(_address == msg.sender);
+		_;	
+	}
+	
+	modifier isGenesis() {
+		require(block.timestamp <= genesisPeriod);
+		_;
+	}
 
-        modifier isOwner(uint _address) {
-                require(_address == msg.sender);
-                _;
-        }
+	constructor() ERC721("Empire", "EMP") {}
 
-        modifier isGenesis() {
-                require(block.timestamp <= genesisPeriod);
-                _;
-        }
+	// Order all functions
+	
+	// TODO: Include Empire Score Integration
+	function getCurrentEfficiencyValue() internal returns (uint) {
+		if (block.timestamp <= generationOne) {
+			return maxEfficiencyCap;
+		}
+		else if (block.timestamp <= generationTwo) {
+			return maxEfficiencyCap - (1 * generationDepreciation);
+		}
+		else if (block.timestamp <= generationThree) {
+			return maxEfficiencyCap - (2 * generationDepreciation);
+		}
+		else if (block.timestamp <= generationFour) {
+			return maxEfficiencyCap - (3 * generationDepreciation);
+		}
+		else if (block.timestamp <= generationFive) {
+			return maxEfficiencyCap - (4 * generationDepreciation);
+		}
+		else if (block.timestamp <= generationSix) {
+			return maxEfficiencyCap - (5 * generationDepreciation);
+		}
+		else {
+			return maxEfficiencyCap - (6 * generationDepreciation);
+		}
+	}
 
-        // Order all constructors
-        constructor() {
-                genesisPeriod = block.timestamp + 30 days;
-        }
+	function _getBiome() internal returns (uint) {
+		return _effectiveRandomNumber(16);
+	}
 
-        constructor(address _owner) {
-                _mint(_owner, 10000);
-        }
+	function setMaxEfficiencyCap(uint _newMax) public onlyOwner{
+		maxEfficiencyCap = _newMax;
+	}
 
-        constructor() {
-                uint internal globalNonce = 0;
-                uint internal maxEfficiencyCap = 20;
-                uint internal genesisEfficiency = 30;
-                uint internal generationDepreciation = 2;
-                uint internal genesisTime = block.timestamp;
-                uint internal generationOne = block.timestamp + 90 days;
-                uint internal generationTwo = block.timestamp + 365 days;
-                uint internal generationThree = block.timestamp + 3 years;
-                uint internal generationFour = block.timestamp + 5 years;
-                uint internal generationFive = block.timestamp + 10 years;
-                uint internal generationSix = block.timestamp + 20 years;
-                uint internal genesisPeriod = block.timestamp + 30 days;
-        }
-        // Order all functions
+	function setGenerationDepreciation(uint _newDepreciation) public onlyOwner{
+		generationDepreciation = _newDepreciation;
+	}
 
-        // TODO: Include Empire Score Integration
-        function getCurrentEfficiencyValue() internal returns (uint) {
-                if (block.timestamp <= generationOne) {
-                        return maxEfficiencyCap;
-                }
-                else if (block.timestamp <= generationTwo) {
-                        return maxEfficiencyCap - (1 * generationDepreciation);
-                }
-                else if (block.timestamp <= generationThree) {
-                        return maxEfficiencyCap - (2 * generationDepreciation);
-                }
-                else if (block.timestamp <= generationFour) {
-                        return maxEfficiencyCap - (3 * generationDepreciation);
-                }
-                else if (block.timestamp <= generationFive) {
-                        return maxEfficiencyCap - (4 * generationDepreciation);
-                }
-                else if (block.timestamp <= generationSix) {
-                        return maxEfficiencyCap - (5 * generationDepreciation);
-                }
-        }
+	function _effectiveRandomNumber(uint _max) internal returns (uint) {
+		globalNonce++;
+		return uint(keccak256(abi.encodePacked(block.timestamp, globalNonce, msg.sender))) % _max;
+	}
 
-        function _getBiome() internal returns (uint16) {
-                return _effectiveRandomNumber(16);
-        }
+	// TODO: Recheck this function
+	function _setPlayerCooldownTime(address _user) internal view returns (uint) {
+		if (legacyOwnedBuildings[_user] == 0) {
+			return playerCooldownTime[_user] +  0 days;
+		}
+		else if (legacyOwnedBuildings[_user] <= 2) {
+			return playerCooldownTime[_user] + legacyOwnedBuildings[_user] - 1 days;
+		}
+		else {
+			return playerCooldownTime[_user] + (7 * (1 - (12/(legacyOwnedBuildings[_user] * 7))));
+		}
+	}
 
-        function setMaxEfficiencyCap(uint _newMax) public onlyOwner {
-                maxEfficiencyCap = _newMax;
-        }
-
-        function setGenerationDepreciation(uint _newDepreciation) public onlyOwner {
-                generationDepreciation = _newDepreciation;
-        }
-
-        function _effectiveRandomNumber(uint _max) internal returns (uint) {
-                globalNonce++;
-                return uint(keccak256(abi.encodePacked(block.timestamp, globalNonce, msg.sender))) % _max;
-
-        // TODO: Recheck this function
-        function _setPlayerCooldownTime(address _user) internal view returns (uint) {
-                if (legacyOwnedBuildings[_user] == 0) {
-                        return playerCooldownTime[_user] +  0 days;
-                }
-                else if (legacyOwnedBuildings[_user] <= 2) {
-                        return playerCooldownTime[_user] + legacyOwnedBuildings[_user] - 1 days;
-                }
-                else {
-                        return playerCooldownTime[_user] + (7 * (1 - (12/(legacyOwnedBuildings[_user] * 7)))) days;
-                }
-        }
-
-        //TODO: Recheck this function
-        function generateOutpost(address _user) public outpostGenerationCooldownTime(_user) isOwner {
-                require(playerCooldownTime[_user] <= block.timestamp || legacyNumBuildings[_user] == 0);
-                uint cappedEfficiency = getEfficiencyValue();
-                uint randomBiome = _getBiome();
-                uint secondaryReq = randomBiome;
-                uint tertiaryReq = randomBiome;
-                while (randomBiome != secondaryReq && randomBiome != tertiaryReq) {
-                        secondaryReq = _getBiome();
-                        tertiaryReq = _getBiome();
-                }
-                buildingId = Buildings.push(building(_user, 1, cappedEfficiency, /* location, */ block.timestamp, randomBiome, secondaryReq, tertiaryReq)) - 1;
-                buildingToOwner[buildingId] = _user;
-                ownerNumBuildings[_user]++;
-                legacyNumBuildings[_user]++;
-                playerCooldownTime[_user] = block.timestamp + _setPlayerCooldownTime(_user);
-                emit outpostGeneration(_user, 1, cappedEfficiency, /* location*/ block.timestamp, randomBiome, secondaryReq, tertiaryReq);
-                if (buildingId % spawnFrequency == 0) {
-                        _spawnEvent();
-                }
-        }
-        function generateGenesisOutpost(address _user) public outpostGenerationCooldownTime(_user) isGenesis isOwner {
-                require(playerCooldownTime[_user] <= block.timestamp || legacyNumBuildings[_user] == 0);
+	//TODO: Recheck this function
+	function generateOutpost(address _user) public payable outpostGenerationCooldownTime(_user) isOwner(_user) {
+		require(playerCooldownTime[_user] <= block.timestamp || legacyOwnedBuildings[_user] == 0);
+		uint cappedEfficiency = getCurrentEfficiencyValue();
+		uint16 randomBiome = uint16(_getBiome() % 16);
+		uint16 secondaryReq = randomBiome;
+		uint16 tertiaryReq = randomBiome;
+		while (randomBiome != secondaryReq && randomBiome != tertiaryReq) {
+			secondaryReq = uint16(_getBiome() % 16);
+			tertiaryReq = uint16(_getBiome() % 16);
+		}
+		Buildings.push(building(_user, 1, cappedEfficiency, block.timestamp, randomBiome, secondaryReq, tertiaryReq));
+		uint buildingId = Buildings.length;
+		buildingToOwner[buildingId] = _user;
+		ownerNumBuildings[_user]++;
+		legacyOwnedBuildings[_user]++;
+		playerCooldownTime[_user] = block.timestamp + _setPlayerCooldownTime(_user);
+		emit outpostGeneration(_user, 1, cappedEfficiency, block.timestamp, randomBiome, secondaryReq, tertiaryReq);
+		if (buildingId % spawnFrequency == 0) {
+			_spawnEvent();
+		}
+	}
+	function generateGenesisOutpost(address _user) public outpostGenerationCooldownTime(_user) isGenesis isOwner(_user) {
+		require(playerCooldownTime[_user] <= block.timestamp || legacyOwnedBuildings[_user] == 0);
                 uint cappedEfficiency = genesisEfficiency;
-                uint randomBiome = _getBiome();
-                uint secondaryReq = randomBiome;
-                uint tertiaryReq = randomBiome;
+                uint16 randomBiome = uint16(_getBiome() % 16);
+                uint16 secondaryReq = randomBiome;
+                uint16 tertiaryReq = randomBiome;
                 while (randomBiome != secondaryReq && randomBiome != tertiaryReq) {
-                        secondaryReq = _getBiome();
-                        tertiaryReq = _getBiome();
+                        secondaryReq = uint16(_getBiome() % 16);
+                        tertiaryReq = uint16(_getBiome() % 16);
                 }
-                buildingId = Buildings.push(building(_user, 1, cappedEfficiency, /* location, */ block.timestamp, randomBiome, secondaryReq, tertiaryReq)) - 1;
+                Buildings.push(building(_user, 1, cappedEfficiency, block.timestamp, randomBiome, secondaryReq, tertiaryReq));
+		uint buildingId = Buildings.length;
                 buildingToOwner[buildingId] = _user;
                 ownerNumBuildings[_user]++;
-                legacyNumBuildings[_user]++;
+                legacyOwnedBuildings[_user]++;
                 playerCooldownTime[_user] = block.timestamp + _setPlayerCooldownTime(_user);
-                emit outpostGeneration(_user, 1, cappedEfficiency, /* location*/ block.timestamp, randomBiome, secondaryReq, tertiaryReq);
+                emit outpostGeneration(_user, 1, cappedEfficiency, block.timestamp, randomBiome, secondaryReq, tertiaryReq);
                 if (buildingId % spawnFrequency == 0) {
                         _spawnEvent();
                 }
-        }
+	}
 
-        // Spawn Events
+	// Spawn Events
         function setSpawnFrequency(uint _newSpawnFrequency) public onlyOwner {
                 spawnFrequency = _newSpawnFrequency;
         }
@@ -200,13 +201,11 @@ contract buildingGeneration is ERC20, ERC721, spawnEvent {
         }
 
         function getStrongholdSpawnRarity() public view returns (uint) {
-                return strongholdSpawnRarity();
+                return strongholdSpawnRarity;
         }
 
-        function _spawnEvent() internal {
-                uint spawnIndex = _effectiveRandomNumber(Buildings.length);
-
-        }
+	function _spawnEvent() internal {
+	}
 
         function _tokenBurn() internal {
         }
