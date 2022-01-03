@@ -8,4 +8,4 @@ Features:
 4. Battle with other empires of your choice by _____________
 5. Create elusive strongholds which generate you empire tokens!
 
-# Development of Empire is paused indefinitely. Perhaps this concept within the Metaverse could be the next venture!
+Development is paused, but feel free to clone the repo and pick up where we left off!
